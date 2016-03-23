@@ -1,0 +1,12 @@
+D:\Projecs\PWStickPlugin\PWStickPlugin\bin\Release\PWStick.dll
+D:\Projecs\PWStickPlugin\PWStickPlugin\bin\Release\PWStick.pdb
+D:\Projecs\PWStickPlugin\PWStickPlugin\bin\Release\PWStick.xml
+D:\Projecs\PWStickPlugin\PWStickPlugin\bin\Release\KeePass.exe
+D:\Projecs\PWStickPlugin\PWStickPlugin\bin\Release\KeePass.XmlSerializers.dll
+D:\Projecs\PWStickPlugin\PWStickPlugin\obj\Release\PWStickPlugin.vbprojResolveAssemblyReference.cache
+D:\Projecs\PWStickPlugin\PWStickPlugin\obj\Release\PWStick.Resources.resources
+D:\Projecs\PWStickPlugin\PWStickPlugin\obj\Release\PWStick.Settings.resources
+D:\Projecs\PWStickPlugin\PWStickPlugin\obj\Release\PWStickPlugin.vbproj.GenerateResource.Cache
+D:\Projecs\PWStickPlugin\PWStickPlugin\obj\Release\PWStick.dll
+D:\Projecs\PWStickPlugin\PWStickPlugin\obj\Release\PWStick.xml
+D:\Projecs\PWStickPlugin\PWStickPlugin\obj\Release\PWStick.pdb

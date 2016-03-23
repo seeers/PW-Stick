@@ -1,0 +1,11 @@
+D:\Projecs\PWStickPlugin\PWStickPlugin\bin\Debug\KeePass.exe
+D:\Projecs\PWStickPlugin\PWStickPlugin\bin\Debug\KeePass.XmlSerializers.dll
+D:\Projecs\PWStickPlugin\PWStickPlugin\obj\Debug\PWStickPlugin.vbproj.GenerateResource.Cache
+D:\Projecs\PWStickPlugin\PWStickPlugin\bin\Debug\PWStick.dll
+D:\Projecs\PWStickPlugin\PWStickPlugin\bin\Debug\PWStick.pdb
+D:\Projecs\PWStickPlugin\PWStickPlugin\bin\Debug\PWStick.xml
+D:\Projecs\PWStickPlugin\PWStickPlugin\obj\Debug\PWStick.Resources.resources
+D:\Projecs\PWStickPlugin\PWStickPlugin\obj\Debug\PWStick.Settings.resources
+D:\Projecs\PWStickPlugin\PWStickPlugin\obj\Debug\PWStick.dll
+D:\Projecs\PWStickPlugin\PWStickPlugin\obj\Debug\PWStick.xml
+D:\Projecs\PWStickPlugin\PWStickPlugin\obj\Debug\PWStick.pdb
