@@ -11,21 +11,21 @@
 * Optional auto lock timer
 * Works as HID Keyboard
 
-![Stick](pictures\stick.jpg?raw=true)
+![Stick](pictures/stick.jpg?raw=true)
 
 
 ## Usage
 ###### 1. Plug in the Password Stick USB device
    * The orange LED indicates that the device is locked
 
-![Stick](pictures\locked.jpg?raw=true)
+![Stick](pictures/locked.jpg?raw=true)
 
 ###### 2. Enter your 4 digit pin to unlock the device (Default Pin is 0000)
    * A short red LED flash indicates a wrong pin attempt
    * If you enter a wrong pin 4 times, the stick will delete all entries while flashing blue
    * A green LED indicates that the device is unlocked an ready
 
-![Stick](pictures\unlocked.jpg?raw=true)
+![Stick](pictures/unlocked.jpg?raw=true)
 
 ###### 3. Type your Username/Password by pressing the button of the entry
    * Press the button for >1sec to type only the password
