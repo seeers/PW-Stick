@@ -45,26 +45,26 @@
 
 After the device is unlocked you can read all stored entries from the stick to Keepass by clicking Tools ==> ReadFromStick
 
-![Stick](pictures\KeepassMenu.png?raw=true)
+![Stick](pictures/KeepassMenu.png?raw=true)
 
 ------
 
 A new Group "Password Stick" will be created or refreshed with the entries:
 
-![Stick](pictures\KeepassStickGroup.png?raw=true)
+![Stick](pictures/KeepassStickGroup.png?raw=true)
 
 ------
 
 
 You can send any existing username with password to a button of the stick by right clicking ==> SendToHWPW-Stick
 
-![Stick](pictures\KeepassContextMenu.png?raw=true)
+![Stick](pictures/KeepassContextMenu.png?raw=true)
 
 ------
 
 You can modify some settings of the Stick by Tools ==> Stick Settings:
 
-![Stick](pictures\KeepassStickSettings.png?raw=true)
+![Stick](pictures/KeepassStickSettings.png?raw=true)
 
 * You can enter a auto lock time to lock the stick after * minutes of the last pressed button
 * You can enable/disable
@@ -86,9 +86,9 @@ You can modify some settings of the Stick by Tools ==> Stick Settings:
 * Some resistors and capacitors
 
 
-![Stick](pcb_b.jpg?raw=true)
+![Stick](pictures/pcb_b.jpg?raw=true)
 
-![Stick](pcb_t.jpg?raw=true)
+![Stick](pictures/pcb_t.jpg?raw=true)
 
 
 **Source code / schematic:** [https://github.com/seeers/MarkupTest](https://github.com/seeers/MarkupTest)
