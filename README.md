@@ -11,7 +11,7 @@
 * Optional auto lock timer
 * Works as HID Keyboard
 
-![Stick](pictures/stick.jpg?raw=true)
+![Stick](pictures/sticks.jpg?raw=true)
 
 
 ## Usage
