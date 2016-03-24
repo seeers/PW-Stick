@@ -73,7 +73,7 @@ You can modify some settings of the Stick by Tools ==> Stick Settings:
 
 
 ## Special features
-  * Username "!"  = ALT + CTRL + DEL ==> Wait 1sec. ==> types password ==> return key
+  * Username "!"  = ALT + CTRL + DEL ==> Wait 1sec. ==> types password ==> return key (for Windows login)
   * Username "$"  = WIN + R ==> Password (Command) ==> Return
   example: Username $   Password: Command   ==> if you press the button a cmd will open
 
