@@ -1,4 +1,4 @@
-**[PW-Stick](https://github.com/seeers/MarkupTest)** is a easy to use hardware password manager for Keepass
+**[PW-Stick](https://github.com/seeers/PW-Stick)** is a easy to use hardware password manager for Keepass
 ======
 
 
@@ -93,7 +93,7 @@ You can modify some settings of the Stick by Tools ==> Stick Settings:
 ![Stick](pictures/pcb_t.jpg?raw=true)
 
 
-**Source code / schematic:** [https://github.com/seeers/MarkupTest](https://github.com/seeers/MarkupTest)
+**Source code / schematic:** [https://github.com/seeers/PW-Stick](https://github.com/seeers/PW-Stick)
 
 
 **Released:** Mar 23, 2016
