@@ -1,4 +1,4 @@
-**[PW-Stick](https://github.com/seeers/MarkupTest)** is a hardware password manager for Keepass
+**[PW-Stick](https://github.com/seeers/MarkupTest)** is a easy to use hardware password manager for Keepass
 ======
 
 
@@ -38,7 +38,8 @@
 | 3 | 4 |
 | 5 | 6 |
 | 7 | 8 |
-| 9 | 0 | *0 is also the lock key*
+| 9 | 0 | 
+*0 is also the lock key*
 
 
 ## Keepass plugin
@@ -84,6 +85,7 @@ You can modify some settings of the Stick by Tools ==> Stick Settings:
 * WS2812b RGB LED
 * 10 Tactile Switches
 * Some resistors and capacitors
+* 3D Printed case
 
 
 ![Stick](pictures/pcb_b.jpg?raw=true)
