@@ -59,7 +59,10 @@ A new Group "Password Stick" will be created or refreshed with the entries:
 
 You can send any existing username with password to a button of the stick by right clicking ==> SendToHWPW-Stick
 
+
 ![Stick](pictures/KeepassContextMenu.png?raw=true)
+
+*note that the Password Stick Group will not refreshed after adding a new entry to a button!
 
 ------
 
