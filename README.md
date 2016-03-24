@@ -22,7 +22,7 @@
 
 ###### 2. Enter your 4 digit pin to unlock the device (Default Pin is 0000)
    * A short red LED flash indicates a wrong pin attempt
-   * If you enter a wrong pin 4 times, the stick will delete all entries while flashing blue
+   * If you enter a wrong pin 4 times, the stick will **delete all entries** while flashing blue
    * A green LED indicates that the device is unlocked an ready
 
 ![Stick](pictures/unlocked.jpg?raw=true)
@@ -38,7 +38,7 @@
 | 3 | 4 |
 | 5 | 6 |
 | 7 | 8 |
-| 9 | 0 | 
+| 9 | 0 |
 *0 is also the lock key*
 
 
