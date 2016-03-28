@@ -96,6 +96,17 @@ You can modify some settings of the Stick by Tools ==> Stick Settings:
 ![Stick](pictures/pcb_t.jpg?raw=true)
 
 
+## Prototype
+
+* 'Arduino' Pro Micro
+* WS2812b RGB LED
+* 8 mini tactile switches
+
+
+![Stick](pictures/prototype2.jpg?raw=true)
+
+
+
 **Source code / schematic:** [https://github.com/seeers/PW-Stick](https://github.com/seeers/PW-Stick)
 
 
