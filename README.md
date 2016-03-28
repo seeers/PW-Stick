@@ -1,4 +1,4 @@
-**[PW-Stick](https://github.com/seeers/PW-Stick)** is a easy to use hardware password manager for Keepass
+**[PW-Stick](https://github.com/seeers/PW-Stick)** is a easy to use hardware password manager
 ======
 
 
