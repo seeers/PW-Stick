@@ -28,7 +28,7 @@
 ![Stick](pictures/unlocked.jpg?raw=true)
 
 ###### 3. Type your Username/Password by pressing the button of the entry
-   * Sequence: {USERNAME}{TAB}{PASSWORD} (Optional:{ENTER})
+   * Sequence: {USERNAME}{TAB}{PASSWORD} (optional:{ENTER})
    * Press the button for >1sec to type only the password
 
 
@@ -45,22 +45,22 @@
 *0 is also the lock key*
 
 
-## Keepass plugin
+## Install Keepass plugin:
 
-* The Plugin is compiled for KeePass 2.32
-* [Download](https://github.com/seeers/PW-Stick/blob/master/PWStickKeepassPlugin/PWStickPlugin/bin/Release/PWStick.dll?raw=true)  the Plugin
-* Copy the unpacked plugin file into the KeePass directory (where the KeePass.exe is) or a subdirectory of it.
+* The Plugin is compiled for KeePass 2.32 (http://keepass.info/news/n160309_2.32.html)
+* [Download](https://github.com/seeers/PW-Stick/blob/master/PWStickKeepassPlugin/PWStickPlugin/bin/Release/PWStick.dll?raw=true) the plugin
+* Copy the .dll plugin file into the KeePass directory (where the KeePass.exe is) or a subdirectory of it.
 * Restart KeePass in order to load the new plugin.
 
 
-###### Usage:
+## Plugin usage:
 After the device is unlocked you can read all stored entries from the stick to Keepass by clicking Tools ==> ReadFromStick
 
 ![Stick](pictures/KeepassMenu.png?raw=true)
 
 ------
 
-A new Group "Password Stick" will be created or refreshed with the entries:
+A new group "Password Stick" will be created or refreshed with the entries:
 
 ![Stick](pictures/KeepassStickGroup.png?raw=true)
 
