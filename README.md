@@ -15,7 +15,7 @@
 
 
 ## Usage
-###### 1. Plug in the Password Stick USB device
+###### 1. Plug in the Password Stick 
    * The orange LED indicates that the device is locked
 
 ![Stick](pictures/locked.jpg?raw=true)
@@ -28,11 +28,13 @@
 ![Stick](pictures/unlocked.jpg?raw=true)
 
 ###### 3. Type your Username/Password by pressing the button of the entry
+   * Sequence: {USERNAME}{TAB}{PASSWORD} (Optional:{ENTER})
    * Press the button for >1sec to type only the password
 
 
-## Assignment of keys
+## Key Layout
 
+(USB Plug)
 | 1 | 2 |  
 | ------------- |:-------------:|
 | 3 | 4 |
@@ -62,7 +64,7 @@ You can send any existing username with password to a button of the stick by rig
 
 ![Stick](pictures/KeepassContextMenu.png?raw=true)
 
-*note that the Password Stick Group will not refreshed after adding a new entry to a button!
+*note that the Password Stick Group will not be automatically refreshed after adding a new entry to a button!
 
 ------
 
@@ -70,8 +72,8 @@ You can modify some settings of the Stick by Tools ==> Stick Settings:
 
 ![Stick](pictures/KeepassStickSettings.png?raw=true)
 
-* You can enter a auto lock time to lock the stick after * minutes of the last pressed button
-* You can enable/disable
+* You can configure timer to lock the stick after * minutes
+* You can enable/disable the {ENTER} key after the Username/Password sequence
 * You can enable/disable locking your computer (WIN_Key+L) after locking the stick with button 0
 
 
