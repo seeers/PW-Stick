@@ -35,6 +35,7 @@
 ## Key Layout
 
 (USB Plug)
+
 | 1 | 2 |  
 | ------------- |:-------------:|
 | 3 | 4 |
@@ -46,6 +47,13 @@
 
 ## Keepass plugin
 
+* The Plugin is compiled for KeePass 2.32
+* [Download](https://github.com/seeers/PW-Stick/blob/master/PWStickKeepassPlugin/PWStickPlugin/bin/Release/PWStick.dll?raw=true)  the Plugin 
+* Copy the unpacked plugin file into the KeePass directory (where the KeePass.exe is) or a subdirectory of it.
+* Restart KeePass in order to load the new plugin.
+
+
+###### Usage:
 After the device is unlocked you can read all stored entries from the stick to Keepass by clicking Tools ==> ReadFromStick
 
 ![Stick](pictures/KeepassMenu.png?raw=true)
