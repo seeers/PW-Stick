@@ -4,7 +4,7 @@
 
 ## Features
 * Stores up to 9 user names and passwords / each up to 47 characters
-* Supports Keepass with a plugin
+* Application "Keepass 2" (http://keepass.info/) supports the PW-Stick with a plugin
 * AES Encrypted Memory
 * Protected by a 4 digit pin
 * Secure erase after 4 wrong pin attempts
