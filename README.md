@@ -15,7 +15,7 @@
 
 
 ## Usage
-###### 1. Plug in the Password Stick 
+###### 1. Plug in the Password Stick
    * The orange LED indicates that the device is locked
 
 ![Stick](pictures/locked.jpg?raw=true)
@@ -48,7 +48,7 @@
 ## Keepass plugin
 
 * The Plugin is compiled for KeePass 2.32
-* [Download](https://github.com/seeers/PW-Stick/blob/master/PWStickKeepassPlugin/PWStickPlugin/bin/Release/PWStick.dll?raw=true)  the Plugin 
+* [Download](https://github.com/seeers/PW-Stick/blob/master/PWStickKeepassPlugin/PWStickPlugin/bin/Release/PWStick.dll?raw=true)  the Plugin
 * Copy the unpacked plugin file into the KeePass directory (where the KeePass.exe is) or a subdirectory of it.
 * Restart KeePass in order to load the new plugin.
 
@@ -118,6 +118,10 @@ You can modify some settings of the Stick by Tools ==> Stick Settings:
 
 
 **Source code / schematic:** [https://github.com/seeers/PW-Stick](https://github.com/seeers/PW-Stick)
+
+
+[![Schematic](pictures/schematic.png?raw=true)](pictures/schematichr.png?raw=true)
+
 
 
 **Released:** Mar 23, 2016
