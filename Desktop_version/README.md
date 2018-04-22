@@ -12,7 +12,13 @@ This version can be made with common components :
 - Micro swith _(ø 3mm / height 6 mm)_
 - M3 x 15 mm screws (x4)
 
-## Key Layout
+## Instructions :
+
+- Setup your environment with custom files in [this folder](../Arduino_requirements/)
+- Use "**arduino-1.0.5-r2**" IDE to compile code *([check this page](https://www.arduino.cc/en/Main/OldSoftwareReleases))*
+- Use the Keepass plugin like described in the [main readme](../)
+
+## Key Layout :
 
 |   | 0 |   |
 |-------------|-------------|-------------|
