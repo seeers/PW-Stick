@@ -330,6 +330,8 @@ void writeConfigToEEprom()
   writeCount++;
 }
 
+// LED Functions
+
 void LEDaction( int LEDparam[] ){
   int LEDnum;
   for ( LEDnum = 0; LEDnum < NUM_LED; LEDnum ++){
@@ -338,6 +340,21 @@ void LEDaction( int LEDparam[] ){
   rgbled.show();
 }
 
+void FlashLED( int initColor[], int flashColor[], int flashDelay, int flashNb){
+  int flashCount;
+
+  for ( flashCount = 0; flashCount <= flashNb; flashCount ++){
+    LEDaction(LEDOff);
+    delay(flashDelay);
+    LEDaction(flashColor);
+    delay(flashDelay);
+  }
+
+  LEDaction(initColor);
+}
+
+
+// Main loop
 void loop()
 {
   if (locked == true) {
@@ -372,22 +389,10 @@ void loop()
     else
     {
       //WRONG PIN!!!!!!!!
-      LEDaction(LEDRed);
-      delay(200);
-      LEDaction(LEDOff);
-      delay(100);
-      LEDaction(LEDRed);
-      delay(200);
-      LEDaction(LEDOff);
-      delay(100);
-      LEDaction(LEDRed);
-      delay(300);
-      LEDaction(LEDOff);
-      delay(150);
-      LEDaction(LEDOrange);
-
+      FlashLED(LEDOrange, LEDRed, 200, 4);
       password.reset();
       wrongPinCount++;
+
       if (wrongPinCount > 3)
       {
         Serial.println("format EEPROM...");
@@ -427,27 +432,15 @@ void loop()
           break;
         case EV_SHORTPRESS:	
           unlocktime = millis();
-          LEDaction(LEDOff);
-          delay(50);
-          LEDaction(LEDGreen);
-          delay(50);
-          LEDaction(LEDOff);
-          delay(50);
-          LEDaction(LEDGreen);
           PrintUserPW(i);
+          FlashLED(LEDGreen, LEDGreen, 50, 2);
           break;
         case EV_LONGPRESS:
           unlocktime = millis();
-          LEDaction(LEDOff);
-          delay(100);
-          LEDaction(LEDGreen);
-          delay(100);
-          LEDaction(LEDOff);
-          delay(100);
-          LEDaction(LEDGreen);
           Keyboard.print(users[i].PW);
           if ((users[i].enter == true) || (GlobalReturn == true))
             Keyboard.write(10);
+          FlashLED(LEDGreen, LEDGreen, 150, 2);
           break;
         }
       }
@@ -553,7 +546,7 @@ void InputPin() {          // Eingabe Modus
         __asm__("nop\n\t");
       }
       password.append('1');
-      FlashLED();
+      FlashLED(LEDOrange, LEDOrange, 50, 1);
     }
     else if(digitalRead(BUTTON2_PIN) == LOW){
       while (digitalRead(BUTTON2_PIN) == LOW)
@@ -561,7 +554,7 @@ void InputPin() {          // Eingabe Modus
         __asm__("nop\n\t");
       }
       password.append('2');
-      FlashLED();
+      FlashLED(LEDOrange, LEDOrange, 50, 1);
     }
     else if(digitalRead(BUTTON3_PIN) == LOW){
       while (digitalRead(BUTTON3_PIN) == LOW)
@@ -569,7 +562,7 @@ void InputPin() {          // Eingabe Modus
         __asm__("nop\n\t");
       }
       password.append('3');
-      FlashLED();
+      FlashLED(LEDOrange, LEDOrange, 50, 1);
     }
     else if(digitalRead(BUTTON4_PIN) == LOW){
       while (digitalRead(BUTTON4_PIN) == LOW)
@@ -577,7 +570,7 @@ void InputPin() {          // Eingabe Modus
         __asm__("nop\n\t");
       }
       password.append('4');
-      FlashLED();
+      FlashLED(LEDOrange, LEDOrange, 50, 1);
     } 
     else if(digitalRead(BUTTON5_PIN) == LOW){
       while (digitalRead(BUTTON5_PIN) == LOW)
@@ -585,7 +578,7 @@ void InputPin() {          // Eingabe Modus
         __asm__("nop\n\t");
       }
       password.append('5');
-      FlashLED();
+      FlashLED(LEDOrange, LEDOrange, 50, 1);
     } 
     else if(digitalRead(BUTTON6_PIN) == LOW){
       while (digitalRead(BUTTON6_PIN) == LOW)
@@ -593,7 +586,7 @@ void InputPin() {          // Eingabe Modus
         __asm__("nop\n\t");
       }
       password.append('6');
-      FlashLED();
+      FlashLED(LEDOrange, LEDOrange, 50, 1);
     } 
     else if(digitalRead(BUTTON7_PIN) == LOW){
       while (digitalRead(BUTTON7_PIN) == LOW)
@@ -601,7 +594,7 @@ void InputPin() {          // Eingabe Modus
         __asm__("nop\n\t");
       }
       password.append('7');
-      FlashLED();
+      FlashLED(LEDOrange, LEDOrange, 50, 1);
     } 
     else if (digitalRead(BUTTON8_PIN) == LOW){
       while (digitalRead(BUTTON8_PIN) == LOW)
@@ -609,7 +602,7 @@ void InputPin() {          // Eingabe Modus
         __asm__("nop\n\t");
       }
       password.append('8');
-      FlashLED();
+      FlashLED(LEDOrange, LEDOrange, 50, 1);
     }
     else if (digitalRead(BUTTON9_PIN) == LOW){
       while (digitalRead(BUTTON9_PIN) == LOW)
@@ -617,7 +610,7 @@ void InputPin() {          // Eingabe Modus
         __asm__("nop\n\t");
       }
       password.append('9');
-      FlashLED();
+      FlashLED(LEDOrange, LEDOrange, 50, 1);
     }
     else if (digitalRead(BUTTON10_PIN) == LOW){
       while (digitalRead(BUTTON10_PIN) == LOW)
@@ -625,7 +618,7 @@ void InputPin() {          // Eingabe Modus
         __asm__("nop\n\t");
       }
       password.append('0');
-      FlashLED();
+      FlashLED(LEDOrange, LEDOrange, 50, 1);
     }
   }
 
@@ -697,18 +690,6 @@ void serialLockedstuff()
   }
 
 }
-
-void FlashLED() {
-  LEDaction(LEDOrange);
-  delay(50);
-  LEDaction(LEDOff);
-  delay(50);
-  LEDaction(LEDOrange);
-  delay(50);
-  LEDaction(LEDOrange);
-}
-
-
 
 void FormatEEProm()
 {
