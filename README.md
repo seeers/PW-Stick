@@ -13,6 +13,10 @@
 
 ![Stick](pictures/sticks.jpg?raw=true)
 
+## New - Desktop version
+<img src="Desktop_version/Pictures/vue_5.JPG" data-canonical-src="Desktop_version/Pictures/vue_5.JPG" width="350" />
+
+Instruction available in "[Desktop_version](./Desktop_version)" folder.
 
 ## Usage
 ###### 1. Plug in the Password Stick
