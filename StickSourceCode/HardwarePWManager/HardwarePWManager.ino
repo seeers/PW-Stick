@@ -430,9 +430,7 @@ void loop()
 					break;
 				case EV_LONGPRESS:
 					unlocktime = millis();
-					Keyboard.print(users[i].PW);
-					if ((users[i].enter == true) || (GlobalReturn == true))
-						Keyboard.write(10);
+					PrintPW(i);					
 					break;
 				}
 			}
@@ -457,6 +455,23 @@ void loop()
 		Serial.print(F("FREEMEM: ")); Serial.println(freeRam ());
 #endif
 	}
+}
+
+void PrintPW(int i)
+{
+
+	EEPROM_readAnything(i * 97, users[i]);
+	ctx = aes128_cbc_dec_start(key, iv);
+	aes128_cbc_dec_continue(ctx, users[i].PW, 48);
+	aes128_cbc_dec_finish(ctx);
+
+	ctx = aes128_cbc_dec_start(key, iv);
+	aes128_cbc_dec_continue(ctx, users[i].User, 48);
+	aes128_cbc_dec_finish(ctx);
+	Keyboard.print(users[i].PW);
+	if ((users[i].enter == true) || (GlobalReturn == true))
+		Keyboard.write(10);
+
 }
 
 void PrintUserPW(int i)
