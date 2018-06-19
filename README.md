@@ -52,7 +52,7 @@ Instruction available in "[Desktop_version](./Desktop_version)" folder.
 
 ## Install Keepass plugin:
 
-* The Plugin is compiled for KeePass 2.32 (http://keepass.info/news/n160309_2.32.html)
+* The Plugin is compiled for KeePass 2.32 (https://sourceforge.net/projects/keepass/files/KeePass%202.x/2.32/)
 * [Download](https://github.com/seeers/PW-Stick/blob/master/PWStickKeepassPlugin/PWStickPlugin/bin/Release/PWStick.dll?raw=true) the plugin
 * Copy the .dll plugin file into the KeePass directory (where the KeePass.exe is) or a subdirectory of it.
 * Restart KeePass in order to load the new plugin.
