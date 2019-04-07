@@ -7,36 +7,59 @@ This project is free software; you can redistribute it and/or
  Commercial use of this project is not allowed
  	
  Contact: seeers@gmx.de
- Desktop version : MatthGyver
- 
- Used Arduino Version:
- arduino-1.0.5-r2
- 
+ Desktop & Touch version : MatthGyver
+  
+ You need an old Arduino IDE because the keyboard emulation was different.
+ With the recent Arduino, keyboard is'nt into the core and all library that
+ I've tested don't support extended ASCII so don't work well for other langage that US.
+ Original core code was modified by Seers to support them but only work with old Arduino vesion.
+
  Used Libraries:
  https://github.com/DavyLandman/AESLib
  https://github.com/adafruit/Adafruit_NeoPixel
  http://playground.arduino.cc/Code/Password
+ https://bitbucket.org/teckel12/arduino-toneac/wiki/Home
+ https://github.com/adafruit/Adafruit_MPR121
+
+
+Buzzer connection like in the library documentation : pin 9 & 10
+Keypad connection is in 2IC so :
+  - SDA = Pin digital 2
+  - SCL = Pin digital 3
+  - IRQ = Not connected
  */
 
 #include "cButton.h"
+#include "Wire.h"
 #include <EEPROM.h>
 #include <Password.h>
 #include "EEPROMAnything.h"
 #include <Adafruit_NeoPixel.h>
 #include <AESLib.h>
-#include <Keyboard.h>
-//#define DEBUG
+#include "Adafruit_MPR121.h"
+#include <toneAC.h>
 
-#define BUTTON1_PIN               A0   // Button 1
-#define BUTTON2_PIN               15   // Button 2
-#define BUTTON3_PIN               2   // Button 3
-#define BUTTON4_PIN               16   // Button 4
-#define BUTTON5_PIN               A3   // Button 5
-#define BUTTON6_PIN               14   // Button 6
-#define BUTTON7_PIN               A2   // Button 7
-#define BUTTON8_PIN               8    // Button 8
-#define BUTTON9_PIN               A1   // Button 9
-#define BUTTON10_PIN              9    // Button 10
+// #define DEBUG
+
+// If you want that the device is unlock at start (usefull for tests)
+#define LOCKED  'true'
+
+// If DEVMODE = true, AES key is'nt regenerated so stored data is reachable after new burn
+#define DEVMODE 'false'
+
+// ----------------------------------------------------------------------------
+// Set keyboard layout
+// ----------------------------------------------------------------------------
+
+// #define KEYBOARD_LAYOUT 'US'
+#define KEYBOARD_LAYOUT 'FR'
+
+#if KEYBOARD_LAYOUT == 'FR'
+#include <KeyboardFR.h>
+#else
+#include <Keyboard.h>
+#endif
+// ----------------------------------------------------------------------------
 
 #define LED_PIN                   5    //LED
 #define NUM_LED                   3    //Number of LED
@@ -45,6 +68,7 @@ This project is free software; you can redistribute it and/or
 #define DELAY                    20  // Delay per loop in ms - orig 20
 
 #define buttoncount				10
+
 //////////////////////////////////////////////////////////////////////////////
 //EEPROM
 #define Get_All_EEPROM        0x40  
@@ -72,89 +96,38 @@ This project is free software; you can redistribute it and/or
 #define PWDoneByte			  0x03
 #define EOTByte				  0x04
 
-
 #define EEGlobalEnter		  960
 #define EELockWSTime		  961
 #define EELockWS_WIN_L		  962
 
-
-
 #define DoneMessage          "þDONE"
-#define Version				 "1.4.5.0"
-//changed Delays 
+#define Version				 "2.0"
 
 // Define LED colours
-int LEDGreen[3] = { 0,90,0 };
-int LEDOrange[3] = { 50,30,0 };
-int LEDBlue[3] = { 0,0,90 };
-int LEDRed[3] = { 90,0,0 };
-int LEDOff[3] = { 0,0,0 };
+uint8_t LEDGreen[3] = { 0,90,0 };
+uint8_t LEDOrange[3] = { 50,30,0 };
+uint8_t LEDBlue[3] = { 0,0,90 };
+uint8_t LEDRed[3] = { 90,0,0 };
+uint8_t LEDOff[3] = { 0,0,0 };
+// uint8_t LockLEDcolor[3] = { 0,0,0 };
+uint8_t LockLEDcolor[3] = { 50,30,0 };
 
-enum { 
-  EV_NONE=0, EV_SHORTPRESS, EV_LONGPRESS };
-//////////////////////////////////////////////////////////////////////////////
-// Class definition
-class ButtonHandler {
-public:
-  // Constructor
-  ButtonHandler(int pin, int longpress_len=DEFAULT_LONGPRESS_LEN);
+// Define sound On/Off
+boolean soundOn = true;
+int soundVolume = 5;
 
-  // Initialization done after construction, to permit static instances
-  void init();
+// Mapping keyboard touch (not usable for pin code but simplify code in main loop)
+int keyMap[12] = { 1,4,7,100,2,5,8,0,3,6,9,200 };
 
-  // Handler, to be called in the loop()
-  int handle();
+// You can have up to 4 on one i2c bus but one is enough for testing!
+Adafruit_MPR121 cap = Adafruit_MPR121();
 
-protected:
-  boolean was_pressed;     // previous state
-  int pressed_counter;     // press running duration
-  const int pin;           // pin to which button is connected
-  const int longpress_len; // longpress duration
-};
+int was_pressed = 0;
+int now_pressed = 0;
+uint8_t longPressCount = 0;
 
-ButtonHandler::ButtonHandler(int p, int lp)
-: 
-pin(p), longpress_len(lp)
-{
-}
-
-void ButtonHandler::init()
-{
-  pinMode(pin, INPUT);
-  digitalWrite(pin, HIGH); // pull-up
-  was_pressed = false;
-  pressed_counter = 0;
-}
-
-int ButtonHandler::handle()
-{
-  int event;
-  int now_pressed = !digitalRead(pin);
-
-  if (!now_pressed && was_pressed) {
-    // handle release event
-    if (pressed_counter < longpress_len)
-      event = EV_SHORTPRESS;
-    else
-      event = EV_LONGPRESS;
-  }
-  else{
-    event = EV_NONE;
-  }	
-
-
-  // update press running duration
-  if (now_pressed)
-    ++pressed_counter;
-  else
-    pressed_counter = 0;
-
-  // remember state, and we're done
-  was_pressed = now_pressed;
-
-  return event;
-}
-
+// Delay between print keyboard char (in ms)
+int keyboardDelay = 30;
 
 typedef struct
 {
@@ -164,8 +137,6 @@ typedef struct
 } 
 UserPW_t;
 
-
-
 char Pin[5];
 
 uint8_t	    byteCount = 0; // reveived bytes
@@ -174,7 +145,8 @@ byte        gRxBuffer[100];   // Receive Buffer
 byte		b;
 byte		settings[3];
 
-
+uint8_t pressed_counter = 0;
+uint8_t longpress_len = 25;
 
 UserPW_t users[buttoncount-1];
 Adafruit_NeoPixel rgbled = Adafruit_NeoPixel(NUM_LED, LED_PIN, NEO_GRB + NEO_KHZ800);
@@ -192,77 +164,89 @@ byte	wrongPinCount = 0;
 unsigned long lockaftertime = 0;
 unsigned long unlocktime = 0;
 
-
 Password password = Password("0000");
+
 aes_context ctx;
-uint8_t iv[] = { 
-  0, 163, 83, 45, 67, 234, 203, 41, 145, 68, 58, 72, 85, 13, 94, 87 };
-uint8_t key[16] = { 
-  64, 26, 2, 3, 42, 5, 0, 0, 8, 9, 0, 0, 12, 89, 0, 15 };
 
-//
-//const char passChars[] = {
-//	'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E',
-//	'F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T',
-//	'U','V','W','X','Y','Z','a','b','c','d','e','f','g','h','i',
-//	'j','k','l','m','n','o','p','q','r','s','t','u','v','w','x', //last normal as number 62 (idx 61)
-//	'y','z','!','"','#','$','%','&','@','?','(',')','[',']','-', // <75 (idx 75)
-//	'.',',','+','{','}','_','/','<','>','=','|','\'','\\', 
-//	';',':',' ','*'// <- 92 (idx 91)
-//};
+// If DEVMODE = false, the key is generated randomly
+# if DEVMODE == 'true'
+uint8_t iv[] = { 124, 163, 83, 45, 67, 234, 203, 41, 145, 68, 58, 72, 85, 13, 94, 87 };
+uint8_t key[16] = { 64, 26, 2, 3, 42, 5, 112, 84, 8, 9, 234, 198, 12, 89, 137, 15 };
+#else
+uint8_t i1  = rand() %256;
+uint8_t i2  = rand() %256;
+uint8_t i3  = rand() %256;
+uint8_t i4  = rand() %256;
+uint8_t i5  = rand() %256;
+uint8_t i6  = rand() %256;
+uint8_t i7  = rand() %256;
+uint8_t i8  = rand() %256;
+uint8_t i9  = rand() %256;
+uint8_t i10 = rand() %256;
+uint8_t i11 = rand() %256;
+uint8_t i12 = rand() %256;
+uint8_t i13 = rand() %256;
+uint8_t i14 = rand() %256;
+uint8_t i15 = rand() %256;
+uint8_t i16 = rand() %256;
 
-//////////////////////////////////////////////////////////////////////////////
+uint8_t iv[] = { i1,i2,i3,i4,i5,i6,i7,i8,i9,i10,i11,i12,i13,i14,i15,i16 };
 
-// Instanciate button objects
-ButtonHandler buttons[buttoncount] = {
-  ButtonHandler(BUTTON1_PIN, DEFAULT_LONGPRESS_LEN),
-  ButtonHandler(BUTTON2_PIN, DEFAULT_LONGPRESS_LEN),
-  ButtonHandler(BUTTON3_PIN, DEFAULT_LONGPRESS_LEN),
-  ButtonHandler(BUTTON4_PIN, DEFAULT_LONGPRESS_LEN),
-  ButtonHandler(BUTTON5_PIN, DEFAULT_LONGPRESS_LEN),
-  ButtonHandler(BUTTON6_PIN, DEFAULT_LONGPRESS_LEN),
-  ButtonHandler(BUTTON7_PIN, DEFAULT_LONGPRESS_LEN),
-  ButtonHandler(BUTTON8_PIN, DEFAULT_LONGPRESS_LEN),
-  ButtonHandler(BUTTON9_PIN, DEFAULT_LONGPRESS_LEN),
-  ButtonHandler(BUTTON10_PIN, DEFAULT_LONGPRESS_LEN)
-  };
+uint8_t k1  = rand() %256;
+uint8_t k2  = rand() %256;
+uint8_t k3  = rand() %256;
+uint8_t k4  = rand() %256;
+uint8_t k5  = rand() %256;
+uint8_t k6  = rand() %256;
+uint8_t k7  = rand() %256;
+uint8_t k8  = rand() %256;
+uint8_t k9  = rand() %256;
+uint8_t k10 = rand() %256;
+uint8_t k11 = rand() %256;
+uint8_t k12 = rand() %256;
+uint8_t k13 = rand() %256;
+uint8_t k14 = rand() %256;
+uint8_t k15 = rand() %256;
+uint8_t k16 = rand() %256;
 
-
-  void setup()
-  {
-    rgbled.begin();
-    rgbled.show();
-    Serial.begin(9600);
-    key[10] = 10;
-    for (int i=0; i < buttoncount; i++)
-    {
-      buttons[i].init();
-    }
-    key[6] = 45;
-
-    locked = true;
-    LEDaction(LEDOrange);
-    EEPROM_readAnything(1000, Pin);
-
-    if (isValidNumber(Pin))
-      password = Password(Pin);
-    else
-      password = Password("0000");
-    key[14] = 167;
-    wrongPinCount = EEPROM.read(950);
-    iv[0] = 124;
-    key[11] = 181;
-#if defined(ENABLEIR) 
-#	LoadIRButtons();
-#	irrecv.enableIRIn();
+uint8_t key[16] = { k1,k2,k3,k4,k5,k6,k7,k8,k9,k10,k11,k12,k13,k14,k15,k16 };
 #endif
 
-    ReadConfigSettings();
-    key[7] = 68;
-    //	Serial.print(F("FREEMEM1: ")); Serial.println(freeRam());
+// ----------------------------------------------------------------------------
+// Setup
+// ----------------------------------------------------------------------------
+void setup()
+{ 
+  Keyboard.begin();
+  rgbled.begin();
+  rgbled.show();
+  
+#if LOCKED == 'false'
+  locked = false;
+#else
+  locked = true;
+#endif
 
-  }
+  LEDcolor(LockLEDcolor);
+  EEPROM_readAnything(1000, Pin);
 
+  if (isValidNumber(Pin))
+    password = Password(Pin);
+  else
+    password = Password("0000");
+
+  wrongPinCount = EEPROM.read(950);
+
+  ReadConfigSettings();
+
+  Serial.begin(9600);
+  
+  cap.begin(0x5A);
+}
+
+// ----------------------------------------------------------------------------
+// Read configuration function
+// ----------------------------------------------------------------------------
 void ReadConfigSettings()
 {
   settings[0] = EEPROM.read(EEGlobalEnter);
@@ -286,9 +270,12 @@ void ReadConfigSettings()
     LockWorkstation = true;
   else
     LockWorkstation = false;
+  
 }
 
-
+// ----------------------------------------------------------------------------
+// Write configuration function
+// ----------------------------------------------------------------------------
 void writeConfigToEEprom()
 {
 
@@ -330,45 +317,84 @@ void writeConfigToEEprom()
   writeCount++;
 }
 
-// LED Functions
+// ----------------------------------------------------------------------------
+// Play sound function. Used when long key press
+// ----------------------------------------------------------------------------
+void long_key_sound(){
+  toneAC(4500,soundVolume,100);
+}
 
-void LEDaction( int LEDparam[] ){
-  int LEDnum;
+// ----------------------------------------------------------------------------
+// Play sound function. Used when short key press
+// ----------------------------------------------------------------------------
+void short_key_sound(){
+  toneAC(1700,soundVolume,100);
+}
+
+// ----------------------------------------------------------------------------
+// Play sound function. Used when pin code is wrong
+// ----------------------------------------------------------------------------
+void wrong_sound(){
+  toneAC(300,soundVolume,200);
+  toneAC(150,soundVolume,200);
+}
+
+// ----------------------------------------------------------------------------
+// Play sound function. Used when pin code is OK and device unlock
+// ----------------------------------------------------------------------------
+void unlock_sound(){
+  toneAC(3000,soundVolume,100);
+  toneAC(3500,soundVolume,100);
+}
+
+// ----------------------------------------------------------------------------
+// Play sound function. Used when lock device
+// ----------------------------------------------------------------------------
+void lock_sound(){
+  toneAC(3500,soundVolume,100);
+  toneAC(3000,soundVolume,100);
+}
+
+// ----------------------------------------------------------------------------
+// LED function. Set same color for all LEDs
+// ----------------------------------------------------------------------------
+void LEDcolor( uint8_t LEDparam[] ){
+  uint8_t LEDnum;
   for ( LEDnum = 0; LEDnum < NUM_LED; LEDnum ++){
     rgbled.setPixelColor(LEDnum,LEDparam[0],LEDparam[1],LEDparam[2]);
   }
   rgbled.show();
 }
 
-void FlashLED( int initColor[], int flashColor[], int flashDelay, int flashNb){
-  int flashCount;
+// ----------------------------------------------------------------------------
+// LED function. Blink LED. Alternate LED color and LED off
+// ----------------------------------------------------------------------------
+void FlashLED( uint8_t initColor[], uint8_t flashColor[], uint8_t flashDelay, uint8_t flashNb){
+  uint8_t flashCount;
 
   for ( flashCount = 0; flashCount <= flashNb; flashCount ++){
-    LEDaction(LEDOff);
+    LEDcolor(LEDOff);
     delay(flashDelay);
-    LEDaction(flashColor);
+    LEDcolor(flashColor);
     delay(flashDelay);
   }
 
-  LEDaction(initColor);
+  LEDcolor(initColor);
 }
 
-
+// ----------------------------------------------------------------------------
 // Main loop
+// ----------------------------------------------------------------------------
 void loop()
 {
   if (locked == true) {
 
     InputPin();
 
-#ifdef DEBUG
-    Serial.print(F("FREEMEM: ")); 
-    Serial.println(freeRam ());
-#endif
-
     if(password.evaluate())
     {
       Serial.println("PW OK!");
+      if ( soundOn == true ) { unlock_sound(); }
       if (wrongPinCount != 0)
       {
         wrongPinCount = 0;
@@ -376,19 +402,21 @@ void loop()
         Serial.println("Write EEprom wrongPinCnt = 0");
       }
       Serial.flush();
-      LEDaction(LEDGreen);
-      unlocktime = millis();
+      LEDcolor(LEDGreen);
 
+      unlocktime = millis();
+      
       locked = false;
-      for (int i=0; i <buttoncount-1; i++)
+      for (int i=0; i < buttoncount-1; i++)
       {				
         EEPROM_readAnything(i*97,users[i]);
       }
-
+      was_pressed = 0;
     }
     else
     {
       //WRONG PIN!!!!!!!!
+      if ( soundOn == true ) { wrong_sound(); }
       FlashLED(LEDOrange, LEDRed, 200, 4);
       password.reset();
       wrongPinCount++;
@@ -405,58 +433,51 @@ void loop()
         Serial.println(wrongPinCount);
         EEPROM.write(950, wrongPinCount);
       }
-
     }
-
   }
   else
   {  
     if (locktimer == true && millis() - unlocktime > lockaftertime) {
       locked=true;
-      LEDaction(LEDOrange);
       password.reset();
+      if ( soundOn == true ) { lock_sound(); }
+      LEDcolor(LockLEDcolor);      
     }
 
     serialstuff();
-
-
-
-    for (int i=0; i <buttoncount; i++)
-    {
-      int event = buttons[i].handle();
-      //if (i != 7 && i != 6)
-      if (i != 9)
-      {
-        switch (event) {
-        case EV_NONE:
-          break;
-        case EV_SHORTPRESS:	
+    // **************************
+    now_pressed = cap.touched();
+    for (uint8_t i = 0; i < 12; i ++) {
+      if ( now_pressed & _BV(3) || now_pressed & _BV(7) || now_pressed & _BV(11) ){
+        if (LockWorkstation == true){ lockWindows() ; }
+        locked=true;
+        LEDcolor(LockLEDcolor);
+        if ( soundOn == true ) { lock_sound(); }
+        password.reset();
+        break;
+      }else{
+        if ( ( !(now_pressed & _BV(i) ) && (was_pressed & _BV(i) ) ) && ( pressed_counter < longpress_len ) ){
+          if ( soundOn == true ) { short_key_sound(); }
           unlocktime = millis();
-          PrintUserPW(i);
+          PrintUserPW(keyMap[i]);
           FlashLED(LEDGreen, LEDGreen, 50, 2);
-          break;
-        case EV_LONGPRESS:
+        }else if ( (now_pressed & _BV(i)) && (pressed_counter == longpress_len ) ){
+          if ( soundOn == true ) { long_key_sound(); }
+          FlashLED(LEDGreen, LEDGreen, 100, 3);
           unlocktime = millis();
-          FlashLED(LEDGreen, LEDGreen, 150, 2);
-          PrintPW(i);
-          break;
-        }
-      }
-      else
-      {
-        if (i = 9){
-          if (event == EV_SHORTPRESS)
-          {						
-            //lockWindows();
-            if (LockWorkstation == true)
-              lockWindows();
-            locked=true;
-            LEDaction(LEDOrange);
-            password.reset();
-          }
+          PrintPW(keyMap[i]);
         }
       }
     }
+
+    if ( now_pressed ){
+      pressed_counter ++;
+    }else{
+      pressed_counter = 0;
+    }
+    
+    was_pressed = now_pressed;
+
     delay(DELAY);
 
 #ifdef DEBUG
@@ -466,180 +487,67 @@ void loop()
   }
 }
 
-void PrintPW(int i)
-{
-    EEPROM_readAnything(i * 97, users[i]);
-    ctx = aes128_cbc_dec_start(key, iv);
-    aes128_cbc_dec_continue(ctx, users[i].PW, 48);
-    aes128_cbc_dec_finish(ctx);
-
-    ctx = aes128_cbc_dec_start(key, iv);
-    aes128_cbc_dec_continue(ctx, users[i].User, 48);
-    aes128_cbc_dec_finish(ctx);
-
-    Keyboard.print(users[i].PW);
-	
-    if ((users[i].enter == true) || (GlobalReturn == true)){
-        Keyboard.write(10);
-    }
-}
-
-void PrintUserPW(int i)
-{
-
-  EEPROM_readAnything(i * 97, users[i]);
-  ctx = aes128_cbc_dec_start(key, iv);
-  aes128_cbc_dec_continue(ctx, users[i].PW, 48);
-  aes128_cbc_dec_finish(ctx);
-
-  ctx = aes128_cbc_dec_start(key, iv);
-  aes128_cbc_dec_continue(ctx, users[i].User, 48);
-  aes128_cbc_dec_finish(ctx);
-
-  if (users[i].User[0] != 0x00 && users[i].User[0] != 0x40 && users[i].User[0] != 0x21 && users[i].User[0] != 0x24)
-  {
-    Keyboard.print(users[i].User);
-    Keyboard.write(9);
-  }
-  if (users[i].User[0] == 0x40) //@
-  {
-    sendKey(0x52);
-    delay(1000);
-  }
-  if (users[i].User[0] == 0x21) //!
-  {
-    sendAltCTRLDel();
-    delay(1000);
-  }
-  if (users[i].User[0] == 0x24) //$
-  {
-    startRun();
-    delay(300);
-  }
-
-  Keyboard.print(users[i].PW);
-  if ((users[i].enter == true) || (users[i].User[0] == 0x40) || (GlobalReturn == true) || (users[i].User[0] == 0x24) || (users[i].User[0] == 0x21))
-  {
-    Keyboard.write(10);
-  }
-
-
-}
-
-
-byte colorswitcher = 0;
-void InputPin() {          // Eingabe Modus
-  //digitalWrite(LED_PIN, HIGH);
+// ----------------------------------------------------------------------------
+// Function to evaluate PIN code
+// ---------------------------------------------------------------------------- 
+void InputPin() {
   value = 0;
-  for(int i = 1; i < 5; i++)
-  {   // request 4 digits
-    do
-    {  
-      // warte darauf das Taster gedrückt wird
+  int i = 0;
+  while ( i < 4){   // request 4 digits
+    do {
       serialLockedstuff();
-      /*
-			rgbled.setPixelColor(0, colorswitcher , 10, 0);
-       			rgbled.show();
-       			value++;
-       
-       			if (value == 120)
-       				colorswitcher++;
-       			
-       			//if (value == 250)
-       			//	colorswitcher--;
-       			*/
       delay(100);
     }
-
-    while ((digitalRead(BUTTON1_PIN) == HIGH) && (digitalRead(BUTTON2_PIN) == HIGH) && (digitalRead(BUTTON3_PIN) == HIGH) && (digitalRead(BUTTON4_PIN) == HIGH)
-      && (digitalRead(BUTTON5_PIN) == HIGH) && (digitalRead(BUTTON6_PIN) == HIGH) && (digitalRead(BUTTON7_PIN) == HIGH) && (digitalRead(BUTTON8_PIN) == HIGH)
-      && (digitalRead(BUTTON9_PIN) == HIGH) && (digitalRead(BUTTON10_PIN) == HIGH));
-
-
-    if(digitalRead(BUTTON1_PIN) == LOW){ // Abfrage welcher Taster gedrückt wurde
-      while (digitalRead(BUTTON1_PIN) == LOW)
-      {
-        __asm__("nop\n\t");
+    while ( ! (cap.touched()) );
+    
+    now_pressed = cap.touched();
+    for (uint8_t k = 0; k < 12; k ++) {
+      if ( now_pressed & _BV(k) ) {      
+        if ( soundOn == true ) { short_key_sound(); }
+        FlashLED(LEDOrange, LEDOrange, 50, 1);
+        switch(k){
+          case 0 :
+            password.append('1');
+            break;
+          case 1 :
+            password.append('4');
+            break;
+          case 2 :
+            password.append('7');
+            break;
+          case 4 :
+            password.append('2');
+            break;
+          case 5 :
+            password.append('5');
+            break;
+          case 6 :
+            password.append('8');
+            break;
+          case 7 :
+            password.append('0');
+            break;
+          case 8 :
+            password.append('3');
+            break;
+          case 9 :
+            password.append('6');
+            break;
+          case 10 :
+            password.append('9');
+            break;
+          default :
+            password.append('a');
+        }
+        i ++;
       }
-      password.append('1');
-      FlashLED(LEDOrange, LEDOrange, 50, 1);
-    }
-    else if(digitalRead(BUTTON2_PIN) == LOW){
-      while (digitalRead(BUTTON2_PIN) == LOW)
-      {
-        __asm__("nop\n\t");
-      }
-      password.append('2');
-      FlashLED(LEDOrange, LEDOrange, 50, 1);
-    }
-    else if(digitalRead(BUTTON3_PIN) == LOW){
-      while (digitalRead(BUTTON3_PIN) == LOW)
-      {
-        __asm__("nop\n\t");
-      }
-      password.append('3');
-      FlashLED(LEDOrange, LEDOrange, 50, 1);
-    }
-    else if(digitalRead(BUTTON4_PIN) == LOW){
-      while (digitalRead(BUTTON4_PIN) == LOW)
-      {
-        __asm__("nop\n\t");
-      }
-      password.append('4');
-      FlashLED(LEDOrange, LEDOrange, 50, 1);
-    } 
-    else if(digitalRead(BUTTON5_PIN) == LOW){
-      while (digitalRead(BUTTON5_PIN) == LOW)
-      {
-        __asm__("nop\n\t");
-      }
-      password.append('5');
-      FlashLED(LEDOrange, LEDOrange, 50, 1);
-    } 
-    else if(digitalRead(BUTTON6_PIN) == LOW){
-      while (digitalRead(BUTTON6_PIN) == LOW)
-      {
-        __asm__("nop\n\t");
-      }
-      password.append('6');
-      FlashLED(LEDOrange, LEDOrange, 50, 1);
-    } 
-    else if(digitalRead(BUTTON7_PIN) == LOW){
-      while (digitalRead(BUTTON7_PIN) == LOW)
-      {
-        __asm__("nop\n\t");
-      }
-      password.append('7');
-      FlashLED(LEDOrange, LEDOrange, 50, 1);
-    } 
-    else if (digitalRead(BUTTON8_PIN) == LOW){
-      while (digitalRead(BUTTON8_PIN) == LOW)
-      {
-        __asm__("nop\n\t");
-      }
-      password.append('8');
-      FlashLED(LEDOrange, LEDOrange, 50, 1);
-    }
-    else if (digitalRead(BUTTON9_PIN) == LOW){
-      while (digitalRead(BUTTON9_PIN) == LOW)
-      {
-        __asm__("nop\n\t");
-      }
-      password.append('9');
-      FlashLED(LEDOrange, LEDOrange, 50, 1);
-    }
-    else if (digitalRead(BUTTON10_PIN) == LOW){
-      while (digitalRead(BUTTON10_PIN) == LOW)
-      {
-        __asm__("nop\n\t");
-      }
-      password.append('0');
-      FlashLED(LEDOrange, LEDOrange, 50, 1);
     }
   }
-
 }
 
+// ----------------------------------------------------------------------------
+// Function for serial messages when device is locked
+// ----------------------------------------------------------------------------
 void serialLockedstuff() 
 {
 
@@ -687,8 +595,8 @@ void serialLockedstuff()
       case SendKeyDebug:
         Serial.print("Sending HID: ");
         Serial.println(b,HEX);
-        Keyboard.pressold(b);
-        Keyboard.pressold('l');
+        Keyboard.press(b);
+        Keyboard.press('l');
         delay(100);
         Keyboard.releaseAll();
         byteCount = 0;
@@ -704,9 +612,100 @@ void serialLockedstuff()
     }
 
   }
-
 }
 
+// ----------------------------------------------------------------------------
+// Function to tap login/password char by char with delay between them
+// ----------------------------------------------------------------------------
+void keyboardModifier( char *stringToModify ){
+  for ( int i = 0; i < strlen(stringToModify); i++ ){
+    Keyboard.print(stringToModify[i]);
+    delay(keyboardDelay);
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Function to tap password only
+// ----------------------------------------------------------------------------
+void PrintPW(int i)
+{
+  // i - 1 for mapping key / password entry match
+  i = i - 1;
+
+  EEPROM_readAnything(i * 97, users[i]);
+  ctx = aes128_cbc_dec_start(key, iv);
+  aes128_cbc_dec_continue(ctx, users[i].PW, 48);
+  aes128_cbc_dec_finish(ctx);
+
+  ctx = aes128_cbc_dec_start(key, iv);
+  aes128_cbc_dec_continue(ctx, users[i].User, 48);
+  aes128_cbc_dec_finish(ctx);
+
+
+  keyboardModifier(users[i].PW);
+
+  if ((users[i].enter == true) || (GlobalReturn == true)){
+      Keyboard.write(10);
+  }
+  
+}
+
+// ----------------------------------------------------------------------------
+// Function to tap login, tabulation and password
+// ----------------------------------------------------------------------------
+void PrintUserPW(int i)
+{
+  // i - 1 for mapping key / password entry match
+  i = i - 1;
+
+#ifdef DEBUG
+  Serial.print("encrypted:");
+  Serial.println(users[i].PW);
+  Serial.println(users[i].User);
+#endif
+
+  EEPROM_readAnything(i * 97, users[i]);
+  ctx = aes128_cbc_dec_start(key, iv);
+  aes128_cbc_dec_continue(ctx, users[i].PW, 48);
+  aes128_cbc_dec_finish(ctx);
+
+  ctx = aes128_cbc_dec_start(key, iv);
+  aes128_cbc_dec_continue(ctx, users[i].User, 48);
+  aes128_cbc_dec_finish(ctx);
+
+#ifdef DEBUG
+  Serial.print("decrypted:");
+  Serial.println(users[i].PW);
+  Serial.println(users[i].User);
+#endif
+
+  if (users[i].User[0] != 0x00 && users[i].User[0] != 0x40 && users[i].User[0] != 0x21 && users[i].User[0] != 0x24)
+  {
+    keyboardModifier(users[i].User);
+    Keyboard.write(9);
+  }
+
+  if (users[i].User[0] == 0x21) //!
+  {
+    sendAltCTRLDel();
+    delay(1000);
+  }
+  if (users[i].User[0] == 0x24) //$
+  {
+    startRun();
+    delay(300);
+  }
+
+  keyboardModifier(users[i].PW);
+  if ((users[i].enter == true) || (users[i].User[0] == 0x40) || (GlobalReturn == true) || (users[i].User[0] == 0x24) || (users[i].User[0] == 0x21))
+  {
+    Keyboard.write(10);
+  }
+}
+
+// ----------------------------------------------------------------------------
+// Function to format EEprom
+// ----------------------------------------------------------------------------
 void FormatEEProm()
 {
   byte doflash = 0; 
@@ -716,19 +715,17 @@ void FormatEEProm()
     doflash++; 
     if (doflash == 10)
     {
-      LEDaction(LEDBlue);
+      LEDcolor(LEDBlue);
       rgbled.show();
 
     }
     if (doflash == 20)
     {
-      LEDaction(LEDOff);
+      LEDcolor(LEDOff);
       rgbled.show();
       doflash = 0;
     }
-
   }
-
 
   //Encrypt Zero Values...
   doflash = 0;
@@ -737,9 +734,6 @@ void FormatEEProm()
     for (int z = 0; z < 47; z++){
       users[i].PW[z] = 0;
       users[i].User[z] = 0;
-      //doflash++;
-
-
     }
 
     //rgbled.setPixelColor(0, 0, 5 * i, 150 - (i * 10));
@@ -747,36 +741,33 @@ void FormatEEProm()
     aes128_cbc_enc_continue(ctx, users[i].PW, 48);
     aes128_cbc_enc_finish(ctx);
 
-
-
     ctx = aes128_cbc_enc_start(key, iv);
     aes128_cbc_enc_continue(ctx, users[i].User, 48);
     aes128_cbc_enc_finish(ctx);
-    LEDaction(LEDBlue);
+    LEDcolor(LEDBlue);
     rgbled.show();
 
     EEPROM_writeAnything(i * 97, users[i]);
 
-    LEDaction(LEDOff);
+    LEDcolor(LockLEDcolor);
     rgbled.show();
     delay(20);
 
   }
-
 
   Serial.print("EraseDone");
   Serial.print(DoneMessage);
   password = Password("0000");
 
   locked = true;
-  LEDaction(LEDOrange);
+  LEDcolor(LockLEDcolor);
   password.reset();
   byteCount = 0;
 }
 
-
-
-
+// ----------------------------------------------------------------------------
+// Function to write login/password to EEprom
+// ----------------------------------------------------------------------------
 void writeUserToEEprom(int id) 
 {
   if (startwrite == true)
@@ -853,7 +844,9 @@ void writeUserToEEprom(int id)
 
 }
 
-
+// ----------------------------------------------------------------------------
+// Function to write PIN code to EEprom
+// ----------------------------------------------------------------------------
 void writePinToEEprom()
 {
   if (startwrite == true)
@@ -884,6 +877,9 @@ void writePinToEEprom()
   writeCount++;
 }
 
+// ----------------------------------------------------------------------------
+// Function for serial messages when device is unlocked
+// ----------------------------------------------------------------------------
 void serialstuff() {
 
   while (Serial.available()) 
@@ -939,8 +935,12 @@ void serialstuff() {
         break;
 
       case LockDevice:
-        locked=true;
-        LEDaction(LEDOrange);
+#if LOCKED == 'false'
+        locked = false;
+#else
+        locked = true;
+#endif      
+        LEDcolor(LockLEDcolor);
         password.reset();
         byteCount=0;  
         break;
@@ -1006,7 +1006,9 @@ void serialstuff() {
   }
 
 }
-
+// ----------------------------------------------------------------------------
+// Function to print RAW EEProm data
+// ----------------------------------------------------------------------------
 void SendRawEEPROM()
 {
   for (int i = 0; i < 1023; i++)
@@ -1019,6 +1021,9 @@ void SendRawEEPROM()
   }
 }
 
+// ----------------------------------------------------------------------------
+// Function to print settings
+// ----------------------------------------------------------------------------
 void printSettings()
 {
   settings[0] = EEPROM.read(EEGlobalEnter);
@@ -1034,6 +1039,9 @@ void printSettings()
   Serial.print(DoneMessage);
 }
 
+// ----------------------------------------------------------------------------
+// Function to print version
+// ----------------------------------------------------------------------------
 void printVersion()
 {
   Serial.print("Version");
@@ -1041,50 +1049,38 @@ void printVersion()
   Serial.print(DoneMessage);
 }
 
+// ----------------------------------------------------------------------------
+// Function to send CtrlAltDel key sequence
+// ----------------------------------------------------------------------------
 void sendAltCTRLDel()
 {
-  Keyboard.pressold(KEY_LEFT_CTRL);
-  Keyboard.pressold(0x82);
-  Keyboard.pressold(KEY_DELETE);
+  Keyboard.press(KEY_LEFT_CTRL);
+  Keyboard.press(0x82);
+  Keyboard.press(KEY_DELETE);
   delay(100);
   Keyboard.releaseAll();
 }
 
+// ----------------------------------------------------------------------------
+// Function to send win+l key sequence
+// ----------------------------------------------------------------------------
 void lockWindows()
 {	
-  Keyboard.pressold(0x83);
-  Keyboard.pressold('l');
+  Keyboard.press(0x83);
+  Keyboard.press('l');
   delay(100);
   Keyboard.releaseAll();
 }
 
+// ----------------------------------------------------------------------------
+// Function to send win+r key sequence
+// ----------------------------------------------------------------------------
 void startRun()
 {
-  Keyboard.pressold(0x83);
-  Keyboard.pressold('r');
+  Keyboard.press(0x83);
+  Keyboard.press('r');
   delay(100);
   Keyboard.releaseAll();
-}
-
-
-//Fuer spezielle Zeichen und Keyboard Befehle.....
-void sendKey(byte key)
-{
-  KeyReport report = {
-    0  };  // Create an empty KeyReport
-
-  /* First send a report with the keys and modifiers pressed */
-  report.keys[0] = key;  // set the KeyReport to key
-  report.modifiers =  0x00;  // set the KeyReport's modifiers
-  report.reserved = 1;
-  Keyboard.sendReport(&report);  // send the KeyReport
-
-  /* Now we've got to send a report with nothing pressed */
-  for (int i=0; i<6; i++)
-    report.keys[i] = 0;  // clear out the keys
-  report.modifiers = 0x00;  // clear out the modifires
-  report.reserved = 0;
-  Keyboard.sendReport(&report);  // send the empty key report
 }
 
 boolean isValidNumber(String str){
@@ -1094,18 +1090,8 @@ boolean isValidNumber(String str){
   }
   return false;
 }
-
 int freeRam () {
   extern int __heap_start, *__brkval;
   int v;
   return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
 }
-
-
-void print_event(const char* button_name, int event)
-{
-  if (event)
-    Serial.print(button_name);
-  Serial.print(".SL"[event]);
-}
-

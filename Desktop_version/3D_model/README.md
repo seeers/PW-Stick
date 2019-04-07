@@ -1,17 +1,14 @@
 # Description
+Bottom is composed of 3 pieces :
+* bottom-a.stl
+* bottom-b.stl
+* bottom-c.stl
 
-This one piece is splittable in 3 part with Slic3r.
+All this part are assembled in one with Slic3r as bottom.amf file.
 
-I've used this keycap https://www.thingiverse.com/thing:2314316
+I'm using a dual head printer but you should be able to do this with single head. There is some technics to change filament like [this](https://www.youtube.com/watch?v=vnbQ0YTZnmk). *I've not tested*
 
-## Part one :
+# Pictures
+![Bottom](../Pictures/pw-desktop-bottom.JPG?raw=true)
 
-![Part one](../Pictures/part_1.JPG?raw=true)
-
-## Part one and two :
-
-![Part one and two](../Pictures/part_1_and_2.JPG?raw=true)
-
-## Part three :
-
-![Part three](../Pictures/part_3.JPG?raw=true)
+![Top](../Pictures/pw-desktop-top.JPG?raw=true)
