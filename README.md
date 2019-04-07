@@ -23,7 +23,7 @@ See the wiki for build and use instructions.
 
 ## Notes
 **Released:** 
-* Stick version by Seers : Mar 23, 2016
+* Stick version by Seeers : Mar 23, 2016
 * Desktop version by MatthGyver : Apr 07, 2019
 
 **Status:** Operational, maybe some bugs, works for me since some months.
